@@ -3,8 +3,8 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 
-const char *ssid = "Kropotkina";
-const char *password = "X3WUN68T";
+const char *ssid = "";
+const char *password = "";
 
 bool isRelayOn = false;
 bool isMotionDetected = false;
@@ -12,18 +12,18 @@ uint8_t motion_trigger_counter = 0;
 
 ESP8266WebServer server(80);
 HTTPClient http;
+uint8_t cmdON[] = {0xA0, 0x01, 0x01, 0xA2};
+uint8_t cmdOFF[] = {0xA0, 0x01, 0x00, 0xA1};
 
 void turnOn()
 {
-  Serial.write("\xa0\x01"); // byte sequence for opening relay
-  Serial.write(0x00);       // apparently because of the 0x00
-  Serial.write(0xa1);       // you need to send on multiple lines
+  Serial.write(cmdON, 4);
   isRelayOn = true;
 }
 
 void turnOff()
 {
-  Serial.write("\xa0\x01\x01\xa2"); // byte sequence for closing relay
+  Serial.write(cmdOFF, 4);
   isRelayOn = false;
 }
 
@@ -41,7 +41,7 @@ void toggle()
 
 void handleRoot()
 {
-  server.send(200, "text/plain", "Hello, the Garage Door gateway is ready");
+  server.send(200, "text/plain", "Running...");
 }
 
 void handleNotFound()
@@ -78,7 +78,6 @@ void setup(void)
   WiFi.begin(ssid, password);
   Serial.println("");
 
-  // Wait for connection
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(1000);
@@ -101,24 +100,23 @@ void setup(void)
   Serial.println("HTTP server started");
 }
 
-byte *buffer[5];
-
 void loop(void)
 {
-  server.handleClient();
-
   if (motion_trigger_counter > 0)
   {
-    if (motion_trigger_counter == 1)
-    {
-      turnOff();
-    }
     motion_trigger_counter--;
   }
   else
   {
-    isMotionDetected = false;
+    if (isMotionDetected == true)
+    {
+      turnOff();
+      isMotionDetected = false;
+    }
   }
+
+  server.handleClient();
+
 
   size_t len = Serial.available();
   uint8_t sbuf[len];
@@ -129,5 +127,7 @@ void loop(void)
     motion_trigger_counter = 30;
     turnOn();
   }
+
+
   delay(1000);
 }
