@@ -29,17 +29,17 @@ void turnOff()
   isRelayOn = false;
 }
 
-void toggle()
-{
-  if (isRelayOn)
-  {
-    turnOn();
-  }
-  else
-  {
-    turnOff();
-  }
-}
+// void toggle()
+// {
+//   if (isRelayOn)
+//   {
+//     turnOn();
+//   }
+//   else
+//   {
+//     turnOff();
+//   }
+// }
 
 void handleRoot()
 {
@@ -51,17 +51,17 @@ void handleNotFound()
   server.send(404, "text/plain", "Not Found");
 }
 
-void handleOpen()
-{
-  turnOn();
-  server.send(200, "text/plain", "Relay ON");
-}
+// void handleOpen()
+// {
+//   turnOn();
+//   server.send(200, "text/plain", "Relay ON");
+// }
 
-void handleClose()
-{
-  turnOff();
-  server.send(200, "text/plain", "Relay Off");
-}
+// void handleClose()
+// {
+//   turnOff();
+//   server.send(200, "text/plain", "Relay Off");
+// }
 
 void handleMotion()
 {
@@ -78,7 +78,7 @@ void handleMotion()
 void setup(void)
 {
   Serial.begin(9600);
-  
+  // pinMode(1, FUNCTION_0); 
   pinMode(0, INPUT);
 
   WiFi.mode(WIFI_STA);
