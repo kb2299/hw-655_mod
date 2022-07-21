@@ -3,8 +3,10 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 
-const char *ssid = "";
-const char *password = "";
+#define SENSOR 0
+
+const char *ssid = "Kropotkina";
+const char *password = "X3WUN68T";
 
 bool isRelayOn = false;
 bool isMotionDetected = false;
@@ -27,17 +29,17 @@ void turnOff()
   isRelayOn = false;
 }
 
-void toggle()
-{
-  if (isRelayOn)
-  {
-    turnOn();
-  }
-  else
-  {
-    turnOff();
-  }
-}
+// void toggle()
+// {
+//   if (isRelayOn)
+//   {
+//     turnOn();
+//   }
+//   else
+//   {
+//     turnOff();
+//   }
+// }
 
 void handleRoot()
 {
@@ -49,22 +51,26 @@ void handleNotFound()
   server.send(404, "text/plain", "Not Found");
 }
 
-void handleOpen()
-{
-  turnOn();
-  server.send(200, "text/plain", "Relay ON");
-}
+// void handleOpen()
+// {
+//   turnOn();
+//   server.send(200, "text/plain", "Relay ON");
+// }
 
-void handleClose()
-{
-  turnOff();
-  server.send(200, "text/plain", "Relay Off");
-}
+// void handleClose()
+// {
+//   turnOff();
+//   server.send(200, "text/plain", "Relay Off");
+// }
 
 void handleMotion()
 {
   if (isMotionDetected == true)
+  {
+    // char  result[40];
+    // sprintf(result, "Motion detected! (counter = %d)", motion_trigger_counter);
     server.send(200, "text/plain", "Motion detected!");
+  }
   else
     server.send(200, "text/plain", "No motion...");
 }
@@ -72,7 +78,8 @@ void handleMotion()
 void setup(void)
 {
   Serial.begin(9600);
-  pinMode(2, INPUT_PULLUP);
+  // pinMode(1, FUNCTION_0); 
+  pinMode(0, INPUT);
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -91,9 +98,9 @@ void setup(void)
   Serial.println(WiFi.localIP());
 
   server.on("/", handleRoot);
-  server.on("/1", handleOpen);
-  server.on("/0", handleClose);
-  server.on("/222", handleMotion);
+  // server.on("/1", handleOpen);
+  // server.on("/0", handleClose);
+  server.on("/motion", handleMotion);
   server.onNotFound(handleNotFound);
   server.begin();
 
@@ -117,17 +124,14 @@ void loop(void)
 
   server.handleClient();
 
+  uint8_t state = digitalRead(SENSOR);
 
-  size_t len = Serial.available();
-  uint8_t sbuf[len];
-  Serial.readBytes(sbuf, len);
-  if (sbuf != NULL && sbuf[0] == 1)
+  if (state > 0)
   {
     isMotionDetected = true;
     motion_trigger_counter = 30;
     turnOn();
   }
 
-
-  delay(1000);
+  delay(500);
 }
