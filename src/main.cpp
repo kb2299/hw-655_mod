@@ -5,8 +5,8 @@
 
 #define SENSOR 0
 
-const char *ssid = "Kropotkina";
-const char *password = "X3WUN68T";
+const char *ssid = "";
+const char *password = "";
 
 bool isRelayOn = false;
 bool isMotionDetected = false;
