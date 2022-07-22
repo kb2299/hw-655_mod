@@ -8,7 +8,7 @@
 <body>
   <form>
     <label>Light state:</label>
-    <input type="button" value="Start machine">
+    <input type="button" value="Lights on">
   </form>
 
   <script>
@@ -17,33 +17,12 @@
         console.error(error);
       })
 
-      // if (response.ok) {
-      //   return true;
-      // } else {
-      //   return false;
-      // }
     }
 
     const button = document.querySelector('input');
     const paragraph = document.querySelector('label');
 
     button.addEventListener('click', updateButton);
-
-    // function updateButton() {
-    //   var a = document.createElement("a");
-    //   if (button.value === 'Lights on') {
-    //     a.href = '/on';
-
-    //     button.value = 'Lights off';
-    //   }
-    //   else {
-    //     a.href = '/off';
-
-    //     button.value = 'Lights on';
-    //   }
-    //   document.body.appendChild(a);
-    //   a.click();
-    // }
 
     function updateButton() {
       var result;
@@ -55,9 +34,6 @@
         result = fetchAsync('/off');
       }
     }
-
-
-
   </script>
 
 
