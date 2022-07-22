@@ -13,9 +13,15 @@
 
   <script>
     async function fetchAsync(url) {
-      let response = await fetch(url);
-      let data = await response.json();
-      return data;
+      let response = await fetch(url).then((response) => { return true; }).catch(error => {
+        console.error(error);
+      })
+
+      // if (response.ok) {
+      //   return true;
+      // } else {
+      //   return false;
+      // }
     }
 
     const button = document.querySelector('input');
@@ -23,19 +29,35 @@
 
     button.addEventListener('click', updateButton);
 
+    // function updateButton() {
+    //   var a = document.createElement("a");
+    //   if (button.value === 'Lights on') {
+    //     a.href = '/on';
+
+    //     button.value = 'Lights off';
+    //   }
+    //   else {
+    //     a.href = '/off';
+
+    //     button.value = 'Lights on';
+    //   }
+    //   document.body.appendChild(a);
+    //   a.click();
+    // }
+
     function updateButton() {
       var result;
       if (button.value === 'Lights on') {
         button.value = 'Lights off';
-        paragraph.textContent = 'The machine has started!';
         result = fetchAsync('/on');
       } else {
         button.value = 'Lights on';
         result = fetchAsync('/off');
       }
-      document.body.appendChild(a);
-      a.click();
-    }      
+    }
+
+
+
   </script>
 
 
