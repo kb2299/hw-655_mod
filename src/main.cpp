@@ -1,12 +1,11 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include <ESP8266HTTPClient.h>
-#include <LittleFS.H>
+#include <FS.H>
 #include <ArduinoJson.h>
 
 #define SENSOR 0
-
+#define LED 13
 ESP8266WebServer server(80);
 
 uint8_t cmdON[] = {0xA0, 0x01, 0x01, 0xA2};
@@ -16,7 +15,7 @@ bool isRelayOn = false;
 
 uint16_t trigger_counter = 0;
 bool isMotionDetected = false;
-bool isUserCommand = false;
+// bool isUserCommand = false;
 
 void turnOn()
 {
@@ -32,7 +31,12 @@ void turnOff()
 
 void handleRoot()
 {
-  server.send(200, "text/plain", "Running...");
+  String path = "/index.html";
+
+  String contentType = mime::getContentType(path);
+  File file = SPIFFS.open("/index.html", "r");
+  server.streamFile(file, contentType);
+  file.close();
 }
 
 void handleNotFound()
@@ -40,58 +44,56 @@ void handleNotFound()
   server.send(404, "text/plain", "Not Found");
 }
 
-void handleMotion()
+void handleStatus()
 {
-  if (trigger_counter > 0)
-  {
-    char result[40];
-
-    if (isMotionDetected == true)
-    {
-      sprintf(result, "Motion detected! (counter = %d)", trigger_counter);
-    }
-    else
-    {
-      sprintf(result, "User command (counter = %d)", trigger_counter);
-    }
-    server.send(200, "text/plain", result);
-  }
-  else
-    server.send(200, "text/plain", "Idle...");
+  StaticJsonDocument<200> doc;
+  doc["relay"] = isRelayOn;
+  doc["motion_detected"] = isMotionDetected;
+  doc["counter"] = trigger_counter;
+  String json;
+  serializeJson(doc, json);
+  server.send(200, "application/json", json);
 }
 
 void handleLightsOn()
 {
+  turnOn();
   trigger_counter = 300;
-  isUserCommand = true;
+  // isUserCommand = true;
   isMotionDetected = false;
+  server.send(200, "text/plain", "200");
 }
 
 void handleLightsOff()
 {
   turnOff();
   trigger_counter = 0;
-  isUserCommand = false;
+  // isUserCommand = false;
   isMotionDetected = false;
+
+  server.send(200, "text/plain", "200");
 }
 
 void setup(void)
 {
+
   Serial.begin(9600);
+  // Serial.begin(9600);
+  pinMode(SENSOR, INPUT);
 
-  LittleFS.begin();
+  SPIFFS.begin();
 
-  if (LittleFS.exists("/config.json"))
+  if (SPIFFS.exists("/config.json"))
   {
     StaticJsonDocument<512> doc;
 
-    File file = LittleFS.open("/config.json", "r");
+    File file = SPIFFS.open("/config.json", "r");
 
     DeserializationError error = deserializeJson(doc, file);
     if (error)
     {
-      Serial.print(F("deserializeJson() failed: "));
-      Serial.println(error.f_str());
+      // Serial.print(F("deserializeJson() failed: "));
+      // Serial.println(error.f_str());
     }
 
     file.close();
@@ -99,49 +101,41 @@ void setup(void)
     // const char *wifi_ssid = doc["wifi_ssid"];
     // const char *wifi_password = doc["wifi_password"];
 
-    Serial.println();
-    Serial.printf("Connecting to SSID: %s", doc["wifi_ssid"].as<const char*>());
-    Serial.println();
-
-    pinMode(SENSOR, INPUT);
+    // Serial.println();
+    // Serial.printf("Connecting to SSID: %s", doc["wifi_ssid"].as<const char *>());
+    // Serial.println();
 
     WiFi.mode(WIFI_STA);
     WiFi.begin(doc["wifi_ssid"].as<const char *>(), doc["wifi_password"].as<const char *>());
-    Serial.println("");
+    // Serial.println("");
 
     while (WiFi.status() != WL_CONNECTED)
     {
       delay(1000);
-      Serial.print(".");
+      // Serial.print(".");
     }
 
-    Serial.println("");
-    Serial.print("Connected!");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
+    // Serial.println("");
+    // Serial.print("Connected!");
+    // Serial.print("IP address: ");
+    // Serial.println(WiFi.localIP());
 
     server.onNotFound(handleNotFound);
 
     server.on("/", handleRoot);
-    server.on("/motion", handleMotion);
+    // server.on("/motion", handleMotion);
     server.on("/on", handleLightsOn);
     server.on("/off", handleLightsOff);
+    server.on("/status", handleStatus);
 
     server.begin();
-
-    Serial.println("HTTP server started");
   }
-  else
-  {
-    Serial.println("");
-    Serial.println("Config file not found!");
-    Serial.println("");
-  }
-  LittleFS.end();
 }
 
 void loop(void)
 {
+  server.handleClient();
+
   if (trigger_counter > 0)
   {
     trigger_counter--;
@@ -149,27 +143,27 @@ void loop(void)
     if (trigger_counter == 0)
     {
       turnOff();
-      isMotionDetected = false;
-      isUserCommand = false;
     }
   }
 
-  server.handleClient();
-
-
-  if (!isUserCommand)
+  // if (trigger_counter < 2)
   {
-    uint8_t state = digitalRead(SENSOR);
+    int state = digitalRead(SENSOR);
     if (state > 0)
     {
       isMotionDetected = true;
-      trigger_counter = 30;
+      trigger_counter = 60 * 2;
 
       if (isRelayOn == false)
       {
         turnOn();
       }
     }
+    else
+    {
+      isMotionDetected = true;
+    }
   }
-  delay(1000);
+
+  delay(500);
 }
