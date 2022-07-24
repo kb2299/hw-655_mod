@@ -8,31 +8,59 @@
 <body>
   <form>
     <label>Light state:</label>
-    <input type="button" value="Lights on">
+    <input id="SW1" type="button" value="Lights on">
   </form>
 
   <script>
-    async function fetchAsync(url) {
-      let response = await fetch(url).then((response) => { return true; }).catch(error => {
-        console.error(error);
-      })
-
+    // function loadJson(url) {
+    //   fetch(url)
+    //     .then((response) => response.json())
+    //     .then((j) => {
+    //       console.log(j);
+    //       return j;
+    //     });
+    // }
+    async function loadJson(url) {
+      return await fetch(url)
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error(response.status);
+          }
+        })
     }
+    // function loadJson(url) {
+    //   let response = await fetch(url).then((response) => { return response.json(); }).catch(error => { console.error(error); })
 
-    const button = document.querySelector('input');
-    const paragraph = document.querySelector('label');
+    //   // let response = await fetch(url);
+
+    //   // if (response.ok) {
+    //   //   var json = await response.json();
+    //   //   console.log(json);
+    //   //   return json;
+    //   // } else {
+    //   //   alert("Ошибка HTTP: " + response.status);
+    //   // }
+    // }
+
+
+    let data = Promise.all(loadJson('/status'));
+    console.log(data);
+    const button = document.getElementById('SW1');
 
     button.addEventListener('click', updateButton);
-
+    console.log(data.relay);
+    button.value = data.relay ? 'Lights off' : 'Lights on';
     function updateButton() {
       var result;
       if (button.value === 'Lights on') {
-        button.value = 'Lights off';
-        result = fetchAsync('/on');
+        result = loadJson('/on');
       } else {
-        button.value = 'Lights on';
-        result = fetchAsync('/off');
+        result = loadJson('/off');
       }
+      console.log(result);
+
     }
   </script>
 
