@@ -15,7 +15,33 @@ bool isRelayOn = false;
 
 uint16_t trigger_counter = 0;
 bool isMotionDetected = false;
-// bool isUserCommand = false;
+
+void blinkError()
+{
+  for (int i = 0; i < 5; ++i)
+  {
+    digitalWrite(LED, 1);
+    delay(150);
+    digitalWrite(LED, 0);
+    delay(100);
+    digitalWrite(LED, 1);
+    delay(150);
+    digitalWrite(LED, 0);
+    delay(100);
+    digitalWrite(LED, 1);
+    delay(150);
+    digitalWrite(LED, 0);
+    delay(500);
+  }
+}
+void blinkOn()
+{
+  digitalWrite(LED, 1);
+}
+void blinkOff()
+{
+  digitalWrite(LED, 0);
+}
 
 void turnOn()
 {
@@ -47,9 +73,11 @@ void handleNotFound()
 void handleStatus()
 {
   StaticJsonDocument<200> doc;
+
   doc["relay"] = isRelayOn;
   doc["motion_detected"] = isMotionDetected;
   doc["counter"] = trigger_counter;
+
   String json;
   serializeJson(doc, json);
   server.send(200, "application/json", json);
@@ -59,7 +87,6 @@ void handleLightsOn()
 {
   turnOn();
   trigger_counter = 300;
-  // isUserCommand = true;
   isMotionDetected = false;
   server.send(200, "text/plain", "200");
 }
@@ -68,7 +95,6 @@ void handleLightsOff()
 {
   turnOff();
   trigger_counter = 0;
-  // isUserCommand = false;
   isMotionDetected = false;
 
   server.send(200, "text/plain", "200");
@@ -76,10 +102,10 @@ void handleLightsOff()
 
 void setup(void)
 {
-
   Serial.begin(9600);
-  // Serial.begin(9600);
+
   pinMode(SENSOR, INPUT);
+  pinMode(LED, OUTPUT);
 
   SPIFFS.begin();
 
@@ -98,32 +124,27 @@ void setup(void)
 
     file.close();
 
-    // const char *wifi_ssid = doc["wifi_ssid"];
-    // const char *wifi_password = doc["wifi_password"];
-
-    // Serial.println();
-    // Serial.printf("Connecting to SSID: %s", doc["wifi_ssid"].as<const char *>());
-    // Serial.println();
-
     WiFi.mode(WIFI_STA);
     WiFi.begin(doc["wifi_ssid"].as<const char *>(), doc["wifi_password"].as<const char *>());
     // Serial.println("");
 
     while (WiFi.status() != WL_CONNECTED)
     {
+      blinkOn();
       delay(1000);
-      // Serial.print(".");
+      blinkOff();
+      Serial.print(".");
     }
+      blinkOff();
 
-    // Serial.println("");
-    // Serial.print("Connected!");
-    // Serial.print("IP address: ");
-    // Serial.println(WiFi.localIP());
+    Serial.println("");
+    Serial.print("Connected!");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
 
     server.onNotFound(handleNotFound);
 
     server.on("/", handleRoot);
-    // server.on("/motion", handleMotion);
     server.on("/on", handleLightsOn);
     server.on("/off", handleLightsOff);
     server.on("/status", handleStatus);
@@ -146,23 +167,21 @@ void loop(void)
     }
   }
 
-  // if (trigger_counter < 2)
-  {
-    int state = digitalRead(SENSOR);
-    if (state > 0)
-    {
-      isMotionDetected = true;
-      trigger_counter = 60 * 2;
+  int state = digitalRead(SENSOR);
 
-      if (isRelayOn == false)
-      {
-        turnOn();
-      }
-    }
-    else
+  if (state > 0)
+  {
+    isMotionDetected = true;
+    trigger_counter = 60 * 2;
+
+    if (isRelayOn == false)
     {
-      isMotionDetected = true;
+      turnOn();
     }
+  }
+  else
+  {
+    isMotionDetected = false;
   }
 
   delay(500);
