@@ -36,11 +36,11 @@ void blinkError()
 }
 void blinkOn()
 {
-  digitalWrite(LED, 1);
+  digitalWrite(BUILTIN_LED, 0);
 }
 void blinkOff()
 {
-  digitalWrite(LED, 0);
+  digitalWrite(BUILTIN_LED, 1);
 }
 
 void turnOn()
@@ -105,7 +105,7 @@ void setup(void)
   Serial.begin(9600);
 
   pinMode(SENSOR, INPUT);
-  pinMode(LED, OUTPUT);
+  pinMode(BUILTIN_LED, OUTPUT);
 
   SPIFFS.begin();
 
@@ -135,7 +135,8 @@ void setup(void)
       blinkOff();
       Serial.print(".");
     }
-      blinkOff();
+
+    blinkOff();
 
     Serial.println("");
     Serial.print("Connected!");
@@ -150,6 +151,7 @@ void setup(void)
     server.on("/status", handleStatus);
 
     server.begin();
+    blinkOff();
   }
 }
 
