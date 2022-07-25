@@ -6,34 +6,52 @@
 </head>
 
 <body>
-  <form>
+  <div id="main">
     <label>Light state:</label>
-    <input type="button" value="Lights on">
-  </form>
+    <input id="button_light" type="button" value="Lights on">
+    <div>
+      <label id="debug"></label>
+    </div>
+  </div>
 
   <script>
-    async function fetchAsync(url) {
-      let response = await fetch(url).then((response) => { return true; }).catch(error => {
-        console.error(error);
-      })
+    const button_light = document.getElementById('button_light');
+    const debug_info = document.getElementById('debug');
 
+    function status_update(data) {
+      console.log(data)
+
+      button_light.value = data.relay ? "Off" : "On";
+      debug_info.innerHTML = JSON.stringify(data)
+      setTimeout(getStatus, 2000);
     }
 
-    const button = document.querySelector('input');
-    const paragraph = document.querySelector('label');
-
-    button.addEventListener('click', updateButton);
-
-    function updateButton() {
-      var result;
-      if (button.value === 'Lights on') {
-        button.value = 'Lights off';
-        result = fetchAsync('/on');
-      } else {
-        button.value = 'Lights on';
-        result = fetchAsync('/off');
+    async function getStatus() {
+      try {
+        let response = await fetch('/status');
+        let data = await response.json();
+        status_update(data)
+      } catch (error) {
+        alert(error);
       }
     }
+
+    async function lightSwitch() {
+      var result;
+      if (button_light.value === 'On') {
+        let result = await fetch('/on');
+      } else {
+        let result = await fetch('/off');
+      }
+
+      // getStatus()
+    }
+
+    button_light.addEventListener('click', lightSwitch);
+
+    getStatus()
+    
+
   </script>
 
 
