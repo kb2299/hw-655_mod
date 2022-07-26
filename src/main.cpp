@@ -16,30 +16,10 @@ bool isRelayOn = false;
 uint16_t trigger_counter = 0;
 bool isMotionDetected = false;
 
-void blinkError()
-{
-  for (int i = 0; i < 5; ++i)
-  {
-    digitalWrite(LED, 1);
-    delay(150);
-    digitalWrite(LED, 0);
-    delay(100);
-    digitalWrite(LED, 1);
-    delay(150);
-    digitalWrite(LED, 0);
-    delay(100);
-    digitalWrite(LED, 1);
-    delay(150);
-    digitalWrite(LED, 0);
-    delay(500);
-  }
-}
-void blinkOn()
+void blink()
 {
   digitalWrite(BUILTIN_LED, 0);
-}
-void blinkOff()
-{
+  delay(50);
   digitalWrite(BUILTIN_LED, 1);
 }
 
@@ -139,13 +119,11 @@ void setup(void)
 
     while (WiFi.status() != WL_CONNECTED)
     {
-      blinkOn();
+      blink();
       delay(1000);
-      blinkOff();
       Serial.print(".");
     }
 
-    blinkOff();
 
     Serial.println("");
     Serial.print("Connected!");
@@ -161,7 +139,6 @@ void setup(void)
     server.on("/js/x.js", handleJS);
 
     server.begin();
-    blinkOff();
   }
 }
 
@@ -179,7 +156,7 @@ void loop(void)
     }
   }
 
-  int state = 0;//digitalRead(SENSOR);
+  int state = 0; // digitalRead(SENSOR);
 
   if (state > 0)
   {
