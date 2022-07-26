@@ -36,11 +36,11 @@ void blinkError()
 }
 void blinkOn()
 {
-  digitalWrite(LED, 1);
+  digitalWrite(BUILTIN_LED, 0);
 }
 void blinkOff()
 {
-  digitalWrite(LED, 0);
+  digitalWrite(BUILTIN_LED, 1);
 }
 
 void turnOn()
@@ -61,6 +61,15 @@ void handleRoot()
 
   String contentType = mime::getContentType(path);
   File file = SPIFFS.open("/index.html", "r");
+  server.streamFile(file, contentType);
+  file.close();
+}
+void handleJS()
+{
+  String path = "/x.js";
+
+  String contentType = mime::getContentType(path);
+  File file = SPIFFS.open(path, "r");
   server.streamFile(file, contentType);
   file.close();
 }
@@ -105,7 +114,7 @@ void setup(void)
   Serial.begin(9600);
 
   pinMode(SENSOR, INPUT);
-  pinMode(LED, OUTPUT);
+  pinMode(BUILTIN_LED, OUTPUT);
 
   SPIFFS.begin();
 
@@ -135,7 +144,8 @@ void setup(void)
       blinkOff();
       Serial.print(".");
     }
-      blinkOff();
+
+    blinkOff();
 
     Serial.println("");
     Serial.print("Connected!");
@@ -148,8 +158,10 @@ void setup(void)
     server.on("/on", handleLightsOn);
     server.on("/off", handleLightsOff);
     server.on("/status", handleStatus);
+    server.on("/js/x.js", handleJS);
 
     server.begin();
+    blinkOff();
   }
 }
 
@@ -167,7 +179,7 @@ void loop(void)
     }
   }
 
-  int state = digitalRead(SENSOR);
+  int state = 0;//digitalRead(SENSOR);
 
   if (state > 0)
   {
