@@ -64,6 +64,15 @@ void handleRoot()
   server.streamFile(file, contentType);
   file.close();
 }
+void handleJS()
+{
+  String path = "/x.js";
+
+  String contentType = mime::getContentType(path);
+  File file = SPIFFS.open(path, "r");
+  server.streamFile(file, contentType);
+  file.close();
+}
 
 void handleNotFound()
 {
@@ -149,6 +158,7 @@ void setup(void)
     server.on("/on", handleLightsOn);
     server.on("/off", handleLightsOff);
     server.on("/status", handleStatus);
+    server.on("/js/x.js", handleJS);
 
     server.begin();
     blinkOff();
@@ -169,7 +179,7 @@ void loop(void)
     }
   }
 
-  int state = digitalRead(SENSOR);
+  int state = 0;//digitalRead(SENSOR);
 
   if (state > 0)
   {
