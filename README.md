@@ -1,2 +1,9 @@
+Experiment..
+
 PIR module on GPIO0
-Config file on board (add AP config?)
+Web server - monitor and control (in dev)
+..
+
+Module system?
+AP for initial config?
+..?

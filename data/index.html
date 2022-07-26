@@ -32,7 +32,7 @@
         let data = await response.json();
         status_update(data)
       } catch (error) {
-        alert(error);
+        console.error(error);
       }
     }
 
@@ -50,7 +50,7 @@
     button_light.addEventListener('click', lightSwitch);
 
     getStatus()
-    
+
 
   </script>
 
